@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Grid</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 30px 0 20px;
+    }
+
+    .store {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .store-button {
+      width: 120px;
+      height: 120px;
+      border-radius: 16px;
+      background-color: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+
+    .store-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .store-button:hover {
+      transform: scale(1.05);
+      cursor: grab;
+    }
+
+    .schedule {
+      overflow: auto;
+      padding: 30px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: max-content;
+    }
+
+    th, td {
+      border: 1px solid #333;
+      width: 120px;
+      height: 120px;
+      vertical-align: top;
+      text-align: center;
+      position: relative;
+    }
+
+    th {
+      background-color: #222;
+      font-weight: bold;
+    }
+
+    td.over {
+      outline: 3px dashed #4caf50;
+    }
+
+    .entry {
+      position: relative;
+      margin: 2px;
+    }
+
+    .entry img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 14px;
+      line-height: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Schedule Grid</h1>
+
+  <div class="store">
+<div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Blob.jpeg"> 
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Blob.jpeg" alt="Button 1">
+
+</div> <div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Gluff.jpg"> 
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Gluff.jpg" alt="Button 2"> 
+ 
+</div> <div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Pandoi.jpeg"> 
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Pandoi.jpeg" alt="Button 3">
+  
+</div> <div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Plasmoid.jpg">
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Plasmoid.jpg" alt="Button 4">
+ 
+</div> <div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Eye.jpg">
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Eye.jpg" alt="Button 5">
+ 
+</div> <div class="store-button" draggable="true" data-img="C:\Users\natha\OneDrive\Pictures\orion\Morganator.jpg">
+<img src="C:\Users\natha\OneDrive\Pictures\orion\Morganator.jpg" alt="Button 5">
+
+    </div>
+  </div>
+
+  <div class="schedule">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>10AM</th><th>11AM</th><th>12PM</th><th>1PM</th><th>2PM</th>
+          <th>3PM</th><th>4PM</th><th>5PM</th><th>6PM</th><th>7PM</th><th>8PM</th><th>9PM</th>
+        </tr>
+      </thead>
+      <tbody id="schedule-body">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const tbody = document.getElementById('schedule-body');
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    days.forEach(day => {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th');
+      th.textContent = day;
+      tr.appendChild(th);
+      for (let i = 0; i < 12; i++) {
+        const td = document.createElement('td');
+        td.ondrop = drop;
+        td.ondragover = allowDrop;
+        td.ondragleave = () => td.classList.remove('over');
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.store-button').forEach(button => {
+      button.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', button.dataset.img);
+      });
+    });
+
+    function allowDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('over');
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      const data = e.dataTransfer.getData('text/plain');
+      e.currentTarget.classList.remove('over');
+      const div = document.createElement('div');
+      div.className = 'entry';
+      const img = document.createElement('img');
+      img.src = data;
+      img.alt = 'Scheduled';
+      const btn = document.createElement('button');
+      btn.textContent = '×';
+      btn.className = 'remove-btn';
+      btn.onclick = () => div.remove();
+      div.appendChild(img);
+      div.appendChild(btn);
+      e.currentTarget.appendChild(div);
+    }
+  </script>
+</body>
+</html>
