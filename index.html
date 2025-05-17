@@ -37,7 +37,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      transition: transform 0.2s;
+      touch-action: none;
     }
 
     .store-button img {
@@ -46,11 +46,6 @@
       object-fit: cover;
       border-radius: 16px;
       pointer-events: none;
-    }
-
-    .store-button:hover {
-      transform: scale(1.05);
-      cursor: grab;
     }
 
     .schedule {
@@ -130,7 +125,6 @@
  
 </div> <div class="store-button" draggable="true" data-img="https://raw.githubusercontent.com/PlasmoidOD/coolstuffs/refs/heads/main/Morganator.jpg">
 <img src="https://raw.githubusercontent.com/PlasmoidOD/coolstuffs/refs/heads/main/Morganator.jpg" alt="Morganator!">
-
     </div>
   </div>
 
@@ -143,8 +137,7 @@
           <th>3PM</th><th>4PM</th><th>5PM</th><th>6PM</th><th>7PM</th><th>8PM</th><th>9PM</th>
         </tr>
       </thead>
-      <tbody id="schedule-body">
-      </tbody>
+      <tbody id="schedule-body"></tbody>
     </table>
   </div>
 
@@ -171,6 +164,21 @@
       button.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', button.dataset.img);
       });
+
+      // Touch support for mobile drag
+      button.addEventListener('touchstart', function(e) {
+        const img = button.dataset.img;
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const move = (ev) => {
+          const dropTarget = document.elementFromPoint(ev.touches[0].clientX, ev.touches[0].clientY);
+          if (dropTarget && dropTarget.tagName === 'TD') {
+            dropTarget.appendChild(createEntry(img));
+          }
+          document.removeEventListener('touchmove', move);
+        };
+        document.addEventListener('touchmove', move, { once: true });
+      });
     });
 
     function allowDrop(e) {
@@ -182,6 +190,11 @@
       e.preventDefault();
       const data = e.dataTransfer.getData('text/plain');
       e.currentTarget.classList.remove('over');
+      e.currentTarget.appendChild(createEntry(data));
+      saveGrid();
+    }
+
+    function createEntry(data) {
       const div = document.createElement('div');
       div.className = 'entry';
       const img = document.createElement('img');
@@ -190,11 +203,30 @@
       const btn = document.createElement('button');
       btn.textContent = '×';
       btn.className = 'remove-btn';
-      btn.onclick = () => div.remove();
+      btn.onclick = () => {
+        div.remove();
+        saveGrid();
+      };
       div.appendChild(img);
       div.appendChild(btn);
-      e.currentTarget.appendChild(div);
+      return div;
     }
+
+    function saveGrid() {
+      const cells = Array.from(document.querySelectorAll('td'));
+      const data = cells.map(td => Array.from(td.querySelectorAll('img')).map(img => img.src));
+      localStorage.setItem('schedule', JSON.stringify(data));
+    }
+
+    function loadGrid() {
+      const data = JSON.parse(localStorage.getItem('schedule') || '[]');
+      document.querySelectorAll('td').forEach((td, i) => {
+        td.innerHTML = '';
+        (data[i] || []).forEach(src => td.appendChild(createEntry(src)));
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadGrid);
   </script>
 </body>
 </html>
